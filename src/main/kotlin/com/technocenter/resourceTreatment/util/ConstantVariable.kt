@@ -1,5 +1,8 @@
 package com.technocenter.resourceTreatment.util
 
+import org.springframework.context.annotation.Configuration
+
+//@Configuration
 class ConstantVariable {
     public val quadrant: Array<String> = arrayOf(
         "Novice", "Challengers", "Hunter", "MVP"
