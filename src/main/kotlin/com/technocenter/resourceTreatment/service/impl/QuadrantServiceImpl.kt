@@ -45,39 +45,65 @@ class QuadrantServiceImpl(
             else
                 3 // IV, MVP
         }
-        result.quadrant = constVar.quadrant[getIndex]
-        result.quadrant = constVar.quadrant[getIndex]
+        result.quadrant = constVar.quadrantIndx[getIndex]
+        result.name = constVar.quadrant[getIndex]
 
         return ResMessageDto(data = result)
     }
 
-    override fun isNonQuadrantI(req: ReqNonQuadrantDto): ResMessageDto<ResNonQuadrantDto> {
-        val result = ResNonQuadrantDto("")
+    override fun isNonQuadrantI(
+        req: ReqNonQuadrantDto
+    ): ResFinalMessageDto<ResNonQuadrantDto, ReqNonQuadrantDto, ResTreatmentDto> {
+        val resultNQ = ResNonQuadrantDto("")
+        val resultT = ResTreatmentDto("")
+        var getNameIndex: Int = -1
+        var getTreatmentIndex: Int = -1
 
         val lvErr = Err()
         lvErr.message = "Level cannot be < 0 or > 5"
         if (req.level < 0 || req.level > 5)
             throw InvalidAttributeValueException("Error: ${lvErr.message}\n")
 
-        if (req.level < 3)
-            result.name = constVar.nonQuadrant[1]       // Junior
-        if (req.level == 3)
-            result.name = constVar.nonQuadrant[2]       // Senior
-        if (req.level > 3)
-            result.name = constVar.nonQuadrant[3]       // Consultant
-
-        if (!req.hasMainJob){
-            if (req.sprintNum < 7)
-                result.name = constVar.nonQuadrant[0]   // Ungraded
+        if (req.level < 3){
+            getNameIndex = 1        // Junior
+            getTreatmentIndex = 2   // Need-Assignment
+        }
+        if (req.level == 3){
+            getNameIndex = 2        // Senior
+            getTreatmentIndex = 1   // Maintain
+        }
+        if (req.level > 3){
+            getNameIndex = 3        // Consultant
+            getTreatmentIndex = 1   // Maintain
         }
 
-        if (req.isResign)
-            result.name = constVar.nonQuadrant[4]       // Resign
+        if (!req.hasMainJob){
+            if (req.sprintNum < 7){
+                getNameIndex = 0        // Ungraded
+                getTreatmentIndex = 2   // Need-Assignment
+            }
+        }
 
-        if (req.underPerform)
-            result.name = constVar.nonQuadrant[5]       // Terminate
+        if (req.isResign){
+            getNameIndex = 4        // Resign
+            getTreatmentIndex = 9   // Resign
+        }
 
-        return ResMessageDto(data = result)
+        if (req.underPerform){
+            getNameIndex = 5        // Terminate
+            getTreatmentIndex = 0   // Terminate
+        }
+
+        if (getNameIndex == -1 || getTreatmentIndex == -1)
+            throw InvalidAttributeValueException("Error: Level is not defined\n")
+
+        resultNQ.name = constVar.nonQuadrant[getNameIndex]
+        resultT.name = constVar.treatments[getTreatmentIndex]
+
+        return ResFinalMessageDto(
+            200, "Success",
+            null, resultNQ, req, resultT
+        )
     }
 
 //    override fun isQuadrant(req: ReqQuadrantDto): ResFinalMessageDto<ResQuadrantDto,ResQuadrantDto,ResQuadrantDto> {
